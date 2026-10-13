@@ -648,3 +648,33 @@ Instead, ask yourself:
 - Do the methods I want to call use pointer receivers?
 - Do I want to pass the same instance around without copying the struct?
 For http.Server, using &http.Server{...} is a conventional and clear choice.
+
+
+
+
+Go Web Development: Interfaces & Routers
+
+
+1. The Core Concept: http.Handler
+
+• What it is: A built-in Go interface (a set of rules) that acts as a universal "plug socket" for web servers.
+• The Rule: To be a valid http.Handler, a type must implement this exact method:go
+ServeHTTP(w http.ResponseWriter, r *http.Request)
+Use code with caution.
+• Why it matters: The standard library's http.Server only cares about this interface. It accepts any router or handler that satisfies this rule.
+
+2. How Chi (*chi.Mux) Fits In
+
+• Chi's core router type is a struct called Mux.
+• As seen in the Chi source code documentation: "It implements the http.Handler interface and is friendly with the standard library."
+• Because Chi implements ServeHTTP under the hood, a *chi.Mux is an http.Handler.
+
+3. Why Substituting *chi.Mux with http.Handler Works
+
+• Implicit Satisfaction: Go interfaces are satisfied implicitly. You don't need an explicit implements keyword. If the methods match, the types match.
+• Interchangeability: You can pass a *chi.Mux into any function parameter or struct field that asks for an http.Handler.
+
+4. Code Best Practice (Decoupling)
+
+• Return Concrete, Accept Interfaces: It is idiomatic in Go to return the specific type (*chi.Mux) when building a router, but accept the broader interface (http.Handler) when running the server.
+• Benefit: By changing your server's startup function to accept http.Handler, you decouple your server logic from the routing library. You can swap Chi for Gin or Go's standard ServeMux in the future without changing your runner code.
